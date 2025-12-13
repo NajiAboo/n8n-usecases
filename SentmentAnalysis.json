@@ -1,0 +1,129 @@
+{
+  "name": "SentmentAnalysis",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        -112
+      ],
+      "id": "ab45046f-e616-4f52-b188-96b667e4f0c0",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.text }}",
+        "options": {
+          "categories": "Positive, Neutral, Negative",
+          "systemPromptTemplate": "You are highly intelligent and accurate sentiment analyzer. Analyze the sentiment of the provided text. Categorize it into one of the following: {categories}. Use the provided formatting instructions. Only output the JSON.",
+          "includeDetailedResults": true,
+          "enableAutoFixing": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.sentimentAnalysis",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        -128
+      ],
+      "id": "d1f20964-6835-4787-a23b-a2e18f69731b",
+      "name": "Sentiment Analysis"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "31d9ed71-abf3-419d-9693-21520ca80bcc",
+              "name": "text",
+              "value": "Its too bad",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -240,
+        -112
+      ],
+      "id": "e4943c7f-7836-49a9-b2a1-08f79096ebee",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -80,
+        80
+      ],
+      "id": "025377fe-c5a1-4410-ae1e-19d717bfc102",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "KAf7x0TinSbb5QvX",
+          "name": "OpenAi account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Sentiment Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Sentiment Analysis",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "03faf5b1-0c25-413f-9e86-f455c53c578c",
+  "meta": {
+    "instanceId": "07dc8411c807baa8eb5dd19d61fa1f017e7cf7f7219a657a85bdeb65b9e0a2a4"
+  },
+  "id": "mBghjVfb74lYsdSR",
+  "tags": []
+}
