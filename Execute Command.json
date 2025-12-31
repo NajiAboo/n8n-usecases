@@ -1,0 +1,77 @@
+{
+  "name": "Execute Command",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -432,
+        -128
+      ],
+      "id": "6910d6b7-c6a4-4d2c-be82-bfe7364f2921",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "command": "cat test.json"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        -144
+      ],
+      "id": "32590dd2-178a-46f8-8062-2a91959e73df",
+      "name": "Execute Command"
+    },
+    {
+      "parameters": {
+        "jsCode": "const output = $json.stdout\nconst parsed = JSON.parse(output)\nconst auth_value = parsed.auth_key\nreturn {\"final_key\": auth_value}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        -144
+      ],
+      "id": "adf15018-8afd-4b19-ae19-65dcd6dcbe54",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Execute Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "66e85ea4-22d8-4668-b26f-335b0ada21b7",
+  "meta": {
+    "instanceId": "07dc8411c807baa8eb5dd19d61fa1f017e7cf7f7219a657a85bdeb65b9e0a2a4"
+  },
+  "id": "DxuDbhQYbjMl2fA6",
+  "tags": []
+}
