@@ -1,0 +1,559 @@
+{
+  "name": "Router Agent  Demo",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -768,
+        -192
+      ],
+      "id": "7cccbee4-3901-4c26-8263-ef3fbfa0aefb",
+      "name": "When chat message received",
+      "webhookId": "40ea6683-42b4-49d9-8c00-2d4a51832db8"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -496,
+        16
+      ],
+      "id": "f1eacaa3-26f8-4e1d-aaa8-cde1cedeea90",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "KAf7x0TinSbb5QvX",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -352,
+        48
+      ],
+      "id": "494dd705-e6e6-4fb6-8309-f4a4aab21f9b",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3180761d-7fb2-4bab-a6b7-4579e048a14c",
+              "name": "output",
+              "value": "={{ JSON.parse($json.output).intent}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -176,
+        -192
+      ],
+      "id": "4f3a70cf-0a88-48a3-80ff-b2afd9cd44d7",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\nYou are a router agent.\n\nYour job is to classify the user query into one of the following intents:\n\n- customer\n- salary\n- order\n- greeting\n\n\nRules:\n\n1. If the message is a greeting (like \"hi\", \"hello\", \"hey\", \"good morning\", etc.),\n   return:\n\n   {\n     \"intent\": \"greeting\"\n   }\n\n2. If the message relates to customer issues, return:\n   {\n     \"intent\": \"customer\"\n   }\n\n3. If the message relates to salary or payroll, return:\n   {\n     \"intent\": \"salary\"\n   }\n\n4. If the message relates to orders, return:\n   {\n     \"intent\": \"order\"\n   }\n\n5. Respond ONLY in JSON.\n6. Do not return any text outside JSON.\n7. Do not explain anything.\n8. There must be followup questions also,So you must check the memory to understad the context\n9. Never add any additional json keyword\n\nInput\n {{ $json.chatInput }}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -544,
+        -192
+      ],
+      "id": "37351d37-91f6-40e2-b67e-ae2195379e91",
+      "name": "Router Agent"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "customer",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "f55aadf1-7c01-4990-a5b7-4d38fbee2e84"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3e0a6ab0-da52-44e6-a6cb-4759b02b76ed",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "order",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "2d4f3d37-b4ae-40d8-81f2-c3437976316a",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "salary",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -16,
+        -144
+      ],
+      "id": "a8f0c842-0820-4f4f-a701-6fb797b8318d",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a customer support assistant.\n\nYour job is to retrieve customer information from the database.\n\nWhen the user asks for details about a person, assume the person’s name in the sentence is the customer_name.\n\nFor example:\n- \"Give me details of Naji\"\n- \"Show customer John\"\n- \"Get info about Sarah\"\n\nExtract the person's name and call the tool \"get_customer_details\".\n\nPass:\n{\n  \"customer_name\": \"<extracted name>\"\n}\n\nDo NOT ask follow-up questions if a name is clearly present.\nOnly ask:\n\"Please provide the customer name.\"\nif absolutely no name is mentioned.\n\nAlways call the tool when a name is present.\nDo not return JSON manually.\n",
+        "options": {
+          "systemMessage": "You are a helpful assistant"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        384,
+        -432
+      ],
+      "id": "6291e9f5-a17b-41d0-bfea-7d6f5ccff6d6",
+      "name": "Customer Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        -192
+      ],
+      "id": "1ccdf7af-b557-43d5-8325-46d154418133",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "KAf7x0TinSbb5QvX",
+          "name": "OpenAi account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        384,
+        -176
+      ],
+      "id": "af17372f-a1c9-4fd5-abaf-d75a62d39322",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT *\nFROM users\nWHERE first_name ilike '%' || $1 || '%';",
+        "options": {
+          "queryReplacement": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Query_Parameters', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        544,
+        -192
+      ],
+      "id": "78a5fd48-a2d7-4220-8949-8dd5e7590d40",
+      "name": "get_customer_details",
+      "credentials": {
+        "postgres": {
+          "id": "4mk1VOLM7Ll3zw15",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        976,
+        -64
+      ],
+      "id": "40adbad3-774c-4ec7-89c6-9e38a1e4bf88",
+      "name": "Simple Memory2"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select * from orders where order_id= $1",
+        "options": {
+          "queryReplacement": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Query_Parameters', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        1152,
+        -64
+      ],
+      "id": "2217fa35-29c9-41f9-8604-9ceda03695bf",
+      "name": "get_order_info",
+      "credentials": {
+        "postgres": {
+          "id": "4mk1VOLM7Ll3zw15",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Instructions:\n\nIf the user provides a valid order ID:\n\nExtract the order ID from the message.\n\nCall the get_order_info tool.\n\nPass the extracted order ID as the parameter for $1.\n\nDo NOT modify the SQL query.\n\nAfter receiving the tool response, present the order details clearly and professionally.\n\nDo NOT mention the tool name.\n\nDo NOT display SQL queries in the response.\n\nIf the user does NOT provide an order ID:\n\nPolitely ask the user to provide their order ID.\n\nDo NOT call the tool.\n\nIf the order ID is unclear or ambiguous:\n\nAsk for clarification.\n\nDo NOT guess or assume the order ID.\n\nKeep responses:\n\nFriendly\n\nClear\n\nProfessional\n\nConcise\n\nNever return JSON unless explicitly required.\n\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        944,
+        -288
+      ],
+      "id": "1582f410-bb86-48b9-bb20-80a392773bbd",
+      "name": "Order Agent"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('When chat message received').item.json.chatInput }}",
+        "options": {
+          "systemMessage": "You are a professional and friendly HR Salary Assistant.\n\nYour responsibility is to determine an employee’s salary based on their total years of experience.\n\nYou MUST use conversation memory. If the user previously asked about salary and now provides only a number (example: \"7\"), treat it as their years of experience.\n\nSalary Rules:\n\n- 0 to 2 years → 30K\n- More than 2 and up to 5 years → 50K\n- More than 5 and up to 10 years → 75K\n- More than 10 years → 100K\n\nCore Instructions:\n\n1. If the user clearly provides years of experience (example: \"I have 4 years\", \"7\", \"10 years experience\"), calculate and return the correct salary immediately.\n2. If the experience is given as a range (example: \"3-4 years\", \"6 to 8 years\"), use the HIGHER value.\n3. If the user provides only a number, assume it represents years of experience (if salary discussion is already active).\n4. If experience is missing, unclear, or not numeric, ask:\n   \"Please tell me your total years of experience so I can calculate your salary.\"\n5. Do NOT guess experience.\n6. Do NOT explain internal salary rules unless the user explicitly asks.\n7. Do NOT return JSON.\n8. Respond naturally in a professional and friendly tone.\n9. Keep responses concise and clear.\n\nResponse Format Guidelines:\n\n- If salary is determined:\n  Example:\n  \"Based on your 7 years of experience, your salary is 75K.\"\n\n- If information is missing:\n  \"Please tell me your total years of experience so I can calculate your salary.\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1136,
+        192
+      ],
+      "id": "3bd07429-870e-42c8-9ee8-ac7b6f496490",
+      "name": "Salary Agent"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1072,
+        368
+      ],
+      "id": "25175cc5-5aae-4bb4-ae5a-1bf4e9a5272a",
+      "name": "Simple Memory3"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('When chat message received').item.json.chatInput }}",
+        "options": {
+          "systemMessage": "You are a friendly and professional customer support assistant.\n\nRespond naturally and conversationally to the user's message.\n\nIf the user greets you (hi, hello, hey, etc.), respond with a warm greeting and ask how you can help.\n\nIf the user asks something general, respond helpfully and clearly.\n\nDo not return JSON.\nDo not mention intents.\nJust respond normally.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        336,
+        352
+      ],
+      "id": "a25ea47f-e2d5-4c24-a4c1-fd3f6127903f",
+      "name": "Fallback agent"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        656,
+        416
+      ],
+      "id": "9ede74f9-5aea-427f-9024-c55b16dc23a2",
+      "name": "Simple Memory4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Router Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Router Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Router Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Router Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Customer Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Order Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Salary Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fallback agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Customer Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Order Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Salary Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Fallback agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Customer Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_customer_details": {
+      "ai_tool": [
+        [
+          {
+            "node": "Customer Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "Order Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_order_info": {
+      "ai_tool": [
+        [
+          {
+            "node": "Order Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "Salary Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory4": {
+      "ai_memory": [
+        [
+          {
+            "node": "Fallback agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "a2cd1b06-3675-4a53-b233-a3042b59ed70",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "07dc8411c807baa8eb5dd19d61fa1f017e7cf7f7219a657a85bdeb65b9e0a2a4"
+  },
+  "id": "dHGHmsmR35k-kD9DWhn68",
+  "tags": []
+}
